@@ -1,8 +1,16 @@
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 import os
+from kivy.utils import platform
 
-KEY_FILE = "key.bin"
+# Get platform-safe file path
+if platform == 'android':
+    from android.storage import app_storage_path
+    BASE_PATH = app_storage_path()
+else:
+    BASE_PATH = os.getcwd()
+
+KEY_FILE = os.path.join(BASE_PATH, "key.bin")
 
 def generate_key():
     key = get_random_bytes(32)  # AES-256 key
@@ -34,6 +42,6 @@ def encrypt_file(path, key):
 def encrypt_folder(folder, key):
     for root, _, files in os.walk(folder):
         for name in files:
-            if not name.endswith(".enc") and name != KEY_FILE:
+            if not name.endswith(".enc") and name != "key.bin":
                 path = os.path.join(root, name)
                 encrypt_file(path, key)

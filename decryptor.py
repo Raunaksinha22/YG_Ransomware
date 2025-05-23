@@ -1,7 +1,15 @@
 from Crypto.Cipher import AES
 import os
+from kivy.utils import platform
 
-KEY_FILE = "key.bin"
+# Get platform-safe file path
+if platform == 'android':
+    from android.storage import app_storage_path
+    BASE_PATH = app_storage_path()
+else:
+    BASE_PATH = os.getcwd()
+
+KEY_FILE = os.path.join(BASE_PATH, "key.bin")
 
 def unpad(data):
     padding_len = data[-1]

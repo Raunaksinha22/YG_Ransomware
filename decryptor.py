@@ -1,23 +1,29 @@
 from Crypto.Cipher import AES
 import os
 
+KEY_FILE = "key.bin"
+
 def unpad(data):
-    return data[:-data[-1]]
+    padding_len = data[-1]
+    return data[:-padding_len]
 
-def decrypt_file(file_path, key):
-    with open(file_path, "rb") as f:
-        iv = f.read(16)
-        ciphertext = f.read()
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    plaintext = unpad(cipher.decrypt(ciphertext))
-    original_path = file_path.replace(".enc", "")
-    with open(original_path, "wb") as f:
-        f.write(plaintext)
-    os.remove(file_path)
+def decrypt_file(path, key):
+    try:
+        with open(path, "rb") as f:
+            iv = f.read(16)
+            ciphertext = f.read()
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        decrypted = unpad(cipher.decrypt(ciphertext))
+        with open(path[:-4], "wb") as f:  # remove ".enc"
+            f.write(decrypted)
+        os.remove(path)
+        print(f"Decrypted: {path}")
+    except Exception as e:
+        print(f"Failed to decrypt {path}: {e}")
 
-def decrypt_directory(directory, key):
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".enc"):
-                full_path = os.path.join(root, file)
-                decrypt_file(full_path, key)
+def decrypt_folder(folder, key):
+    for root, _, files in os.walk(folder):
+        for name in files:
+            if name.endswith(".enc"):
+                path = os.path.join(root, name)
+                decrypt_file(path, key)
